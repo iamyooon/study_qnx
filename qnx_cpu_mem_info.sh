@@ -9,33 +9,52 @@ PATH_TASKLIST="$PATH_OUTPUT_DIR/tasklist"
 PATH_CPUUSAGE="$PATH_OUTPUT_DIR/all_cpuusage.log"
 PATH_MEMUSAGE="$PATH_OUTPUT_DIR/all_memusage.log"
 
+HOGS_HEADER="PID           NAME  MSEC PIDS  SYS       MEMORY"
+
 DELAY="2"
 COUNT="10"
 AWK="/usr/bin/debug/awk"
 
 get_cpu_mem_info()
 {
-	date > $PATH_USAGE_FILE
+	rm -rf $PATH_USAGE_FILE
+	date >> $PATH_USAGE_FILE
 	echo "delay: $DELAY count: $COUNT output path: $PATH_USAGE_FILE"
 	hogs -p 40 -S p -s $DELAY -i $COUNT -m p >> $PATH_USAGE_FILE
 	date >> $PATH_USAGE_FILE
 }
 
+# re-write function to handle qnx exception
+# qnx's hogs show entry without process name
 trans_to_csv()
 {
-	echo "Make ($1) to csv style"
+	echo "trans_to_csv,$1,$PATH_USAGE_CSV"
 	mkdir -p $PATH_OUTPUT_DIR
+	rm -rf $1.csv output/col_name
 
-	# 1. convert to csv type
-	cat $1 | while read line
-	do
-		echo $line | tr ' ' ',' >> $1.csv
+	cat $1 | grep -v -e GMT -e "$HOGS_HEADER" -e "^$" > $1.tmp
+	cat $1.tmp | cut -c 1-10 | tr -d ' ' > output/col_pid
+	cat $1.tmp | cut -c 11-24 | tr -d ' ' > output/col_name.tmp
+	cat $1.tmp | cut -c 25-30 | tr -d ' ' > output/col_msec
+	cat $1.tmp | cut -c 31-35 | tr -d ' ' > output/col_pids
+	cat $1.tmp | cut -c 36-40 | tr -d ' ' > output/col_sys
+	cat $1.tmp | cut -c 41-48 | tr -d ' ' > output/col_mem
+
+	cat output/col_name.tmp | while read line; do
+		if [ "$line" == "" ]; then
+			echo "NO_NAME" >> output/col_name
+		else
+			echo $line >> output/col_name
+		fi
 	done
 
-	# 2. delete date, header
-	# do not work in qnx
-	# cat $1.csv | grep -v "GMT\|PID" > $PATH_USAGE_CSV
-	cat $1.csv | grep -v -e GMT -e PID > $PATH_USAGE_CSV
+	paste -d',' \
+		output/col_pid \
+		output/col_name\
+		output/col_msec\
+		output/col_pids\
+		output/col_sys\
+		output/col_mem > $PATH_USAGE_CSV
 }
 
 get_uniq_tasklist()
@@ -68,19 +87,18 @@ split_data_per_task()
 
 	cat $PATH_TASKLIST | while read line
 	do
-		echo $line
 		for sorted_filenr in `find -maxdepth 1 -type f | grep tmp$ | cut -d'/' -f2 | cut -d'.' -f1 | sort -n`; do
 			#echo "$sorted_filenr -> ./$sorted_filenr.tmp"
 			filepath="./$sorted_filenr.tmp"
-			output_path="$PATH_TASKDATA_DIR/`echo "$line" | cut -d';' -f1`.data"
-			#echo "$line,$filepath"
+			output_path="$PATH_TASKDATA_DIR/`echo "$line" | cut -d',' -f1`.data"
+			echo "$line,$filepath"
 
 			result=`grep -F $line $filepath`
 			if [ "$?" == "0" ]; then
-				echo $result | cut -d';' -f1,2,4,6 >> $output_path
+				echo $result | cut -d',' -f1,2,4,6 >> $output_path
 				#echo "found, $result"
 			else
-				echo "$line;0%;0k" >> $output_path
+				echo "$line,0%,0k" >> $output_path
 				#echo "not found"
 			fi
 
@@ -91,7 +109,6 @@ split_data_per_task()
 		done
 	done
 
-	rm *.tmp
 }
 
 
@@ -137,6 +154,7 @@ do_all_stage()
 {
 	get_cpu_mem_info
 	do_parse_data
+	rm *.tmp
 }
 
 
