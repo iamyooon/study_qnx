@@ -229,6 +229,7 @@ parse_usage_to_csv()
 do_parse_data_new()
 {
 	trans_to_csv "$PATH_USAGE_DATA"
+	get_uniq_tasklist
 	split_data_per_iteration
 	make_data_fixed_length
 
