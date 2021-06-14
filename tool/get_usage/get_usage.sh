@@ -135,11 +135,6 @@ split_data_per_task()
 				echo "$line,0%,0k" >> $output_path
 				#echo "not found"
 			fi
-
-			# 4. cpu info capture
-			#cat $filepath | cut -d';' -f2,3 > ../$filepath.cpu
-			# 5. memory info capture
-			#cat $filepath | cut -d';' -f2,6 | cut -d'k' -f1 > ../$filepath.mem
 		done
 	done
 
