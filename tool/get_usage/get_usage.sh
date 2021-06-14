@@ -244,5 +244,5 @@ elif [ "$OP_MODE" == "split" ]; then
 elif [ "$OP_MODE" == "join" ]; then
 	join_all_data
 else
-	get_cpu_mem_info
+	get_cpu_mem_info "$PATH_USAGE_FILE"
 fi
