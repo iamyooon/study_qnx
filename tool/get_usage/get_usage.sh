@@ -123,7 +123,11 @@ make_data_fixed_length()
 			max=$linenr
 		fi
 	done
-	echo "$max found"
+	echo "max found -> $max"
+
+	if [ "100" -gt "$max" ]; then
+		max=100
+	fi
 
 	# add blank line for fixed length
 	for file in `find *.000`; do
@@ -145,10 +149,8 @@ make_data_fixed_length()
 split_data_per_iteration()
 {
 
-	echo "split_data_per-iter,$PATH_TASKDATA_DIR,$PATH_USAGE_CSV"
-	rm -rf $PATH_TASKDATA_DIR
-	mkdir -p $PATH_TASKDATA_DIR
-	# 4. split data per task
+	echo "split_data_per-iter,$PATH_USAGE_CSV"
+	# split data per task
 	cat $PATH_USAGE_CSV | $AWK '/procnto-smp-in/{filename=NR".000"}; {print > filename}'
 
 }
@@ -227,12 +229,11 @@ parse_usage_to_csv()
 do_parse_data_new()
 {
 	trans_to_csv "$PATH_USAGE_DATA"
-	get_uniq_tasklist
 	split_data_per_iteration
 	make_data_fixed_length
 
 	for file in `find *.000 | sort -n`; do
-		cat $file >> all
+		cat $file >> $PATH_OUTPUT_DIR/all.csv
 	done
 
 }
