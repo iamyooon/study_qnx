@@ -1,6 +1,7 @@
 #!/bin/sh
 OP_MODE=""
 PATH_USAGE_FILE="/tmp/cpu_mem_info"
+PATH_USAGE_DATA=$PATH_USAGE_FILE
 
 PATH_OUTPUT_DIR="./output"
 PATH_TASKDATA_DIR="$PATH_OUTPUT_DIR/taskdata"
@@ -41,11 +42,11 @@ env_setup()
 
 get_cpu_mem_info()
 {
-	rm -rf $PATH_USAGE_FILE
-	date >> $PATH_USAGE_FILE
-	echo "delay: $DELAY count: $COUNT output path: $PATH_USAGE_FILE"
-	hogs -p 40 -S p -s $DELAY -i $COUNT -m p >> $PATH_USAGE_FILE
-	date >> $PATH_USAGE_FILE
+	rm -rf $1
+	date >> $1
+	echo "delay: $DELAY count: $COUNT output path: $1"
+	hogs -p 40 -S p -s $DELAY -i $COUNT -m p >> $1
+	date >> $1
 }
 
 # re-write function to handle qnx exception
@@ -177,7 +178,7 @@ join_all_data()
 
 do_parse_data()
 {
-	trans_to_csv "$PATH_USAGE_FILE"
+	trans_to_csv "$PATH_USAGE_DATA"
 	get_uniq_tasklist
 	split_data_per_task "$PATH_TASKLIST"
 	join_all_data
@@ -185,7 +186,7 @@ do_parse_data()
 
 do_all_stage()
 {
-	get_cpu_mem_info
+	get_cpu_mem_info "$PATH_USAGE_FILE"
 	do_parse_data
 	rm *.tmp
 }
@@ -195,10 +196,13 @@ do_all_stage()
 display_help() {
     echo "Usage: $0 [option...]" >&2
     echo
-    echo "   -d, --delay        sec delay(default: 2sec)"
-    echo "   -c, --count        count(default: 10)"
-    echo "   -o, --output       path(default:/tmp/cpu_mem_info)"
-    echo "   -m, --mode         mode(default: info"
+    echo "   -d, --delay        capture delay(default: 2sec)"
+    echo "   -c, --count        capture count(default: 10)"
+    echo "   -o, --output       capture data output path(default:/tmp/cpu_mem_info)"
+    echo "   -m, --mode         mode(default: get cpu memory info
+    				all: get cpu memory info & parse data
+				parse: parse data"
+    echo "   -i, --input        cpu memory info path"
     echo "   -h, --help         show this message"
     echo
     # echo some stuff here for the -a or --add-options 
@@ -218,6 +222,7 @@ while [[ $# -gt 0 ]]; do
 		--count | -c) COUNT=$2; echo "option - count($COUNT)"; shift; shift; ;;
 		--output | -o) PATH_USAGE_FILE="$2"; echo "option - output path($PATH_USAGE_FILE)"; shift; shift; ;;
 		--mode | -m) OP_MODE="$2"; echo "option - mode($OP_MODE)"; shift; shift; ;;
+		--input | -i) PATH_USAGE_DATA="$2"; echo "option - usage data path($PATH_USAGE_DATA)"; shift; shift; ;;
 		* ) display_help; exit 1; ;;
 	esac
 done
@@ -229,9 +234,9 @@ if [ "$OP_MODE" == "all" ]; then
 elif [ "$OP_MODE" == "parse" ]; then
 	do_parse_data
 elif [ "$OP_MODE" == "info" ]; then
-	get_cpu_mem_info
+	get_cpu_mem_info "$PATH_USAGE_FILE"
 elif [ "$OP_MODE" == "csv" ]; then
-	trans_to_csv "$PATH_USAGE_FILE"
+	trans_to_csv "$PATH_USAGE_DATA"
 elif [ "$OP_MODE" == "tasklist" ]; then
 	get_uniq_tasklist
 elif [ "$OP_MODE" == "split" ]; then
