@@ -18,12 +18,14 @@ async2()
 
 echo "main before"
 async1 &
-apid1=$!
+echo "$!" >> /tmp/async_list
 async2 &
-apid2=$!
+echo "$!" >> /tmp/async_list
 
-echo "main PID=$$ asynch1 PID=$apid1 asynch2 PID=$apid2" 
-echo "waiting $apid1 $apid2"
-wait $apid1 $apid2
+for i in `cat /tmp/async_list`; do
+	echo "wait [$i]"
+	wait $i
+done
+
 echo "wait done"
 exit 0
