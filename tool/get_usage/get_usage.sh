@@ -54,31 +54,40 @@ trans_to_csv()
 {
 	echo "trans_to_csv,$1,$PATH_USAGE_CSV"
 	mkdir -p $PATH_OUTPUT_DIR
-	rm -rf $1.csv output/col_name
+	rm -rf $PATH_USAGE_CSV output/col_name
 
-	cat $1 | grep -v -e GMT -e "$HOGS_HEADER" -e "^$" > $1.tmp
-	cat $1.tmp | cut -c 1-10 | tr -d ' ' > output/col_pid
-	cat $1.tmp | cut -c 11-24 | tr -d ' ' > output/col_name.tmp
-	cat $1.tmp | cut -c 25-30 | tr -d ' ' > output/col_msec
-	cat $1.tmp | cut -c 31-35 | tr -d ' ' > output/col_pids
-	cat $1.tmp | cut -c 36-40 | tr -d ' ' > output/col_sys
-	cat $1.tmp | cut -c 41-48 | tr -d ' ' > output/col_mem
+	path_tmp_csv="$PATH_OUTPUT_DIR/$1.tmp"
 
-	cat output/col_name.tmp | while read line; do
+	cat $1 | grep -v -e GMT -e "$HOGS_HEADER" -e "^$" > $path_tmp_csv
+	cat $path_tmp_csv | cut -c 1-10 | tr -d ' ' > $PATH_OUTPUT_DIR/col_pid
+	cat $path_tmp_csv | cut -c 11-24 | tr -d ' ' > $PATH_OUTPUT_DIR/col_name.tmp
+	cat $path_tmp_csv | cut -c 25-30 | tr -d ' ' > $PATH_OUTPUT_DIR/col_msec
+	cat $path_tmp_csv | cut -c 31-35 | tr -d ' ' > $PATH_OUTPUT_DIR/col_pids
+	cat $path_tmp_csv | cut -c 36-40 | tr -d ' ' > $PATH_OUTPUT_DIR/col_sys
+	cat $path_tmp_csv | cut -c 41-48 | tr -d ' ' > $PATH_OUTPUT_DIR/col_mem
+
+	cat $PATH_OUTPUT_DIR/col_name.tmp | while read line; do
 		if [ "$line" == "" ]; then
-			echo "NO_NAME" >> output/col_name
+			echo "NO_NAME" >> $PATH_OUTPUT_DIR/col_name
 		else
-			echo $line >> output/col_name
+			echo $line >> $PATH_OUTPUT_DIR/col_name
 		fi
 	done
 
 	paste -d',' \
-		output/col_pid \
-		output/col_name\
-		output/col_msec\
-		output/col_pids\
-		output/col_sys\
-		output/col_mem > $PATH_USAGE_CSV
+		$PATH_OUTPUT_DIR/col_pid \
+		$PATH_OUTPUT_DIR/col_name\
+		$PATH_OUTPUT_DIR/col_msec\
+		$PATH_OUTPUT_DIR/col_pids\
+		$PATH_OUTPUT_DIR/col_sys\
+		$PATH_OUTPUT_DIR/col_mem > $PATH_USAGE_CSV
+
+	# parse sub-command use it
+	#
+	# 0,[idle],./cpu_mem_info.tmp
+	# ...
+	# 794707,cpu_lockup_cli,./cpu_mem_info.tmp
+	rm -rf $path_tmp_csv
 }
 
 get_uniq_tasklist()
