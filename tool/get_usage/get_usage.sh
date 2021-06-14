@@ -57,7 +57,7 @@ trans_to_csv()
 	mkdir -p $PATH_OUTPUT_DIR
 	rm -rf $PATH_USAGE_CSV output/col_name
 
-	path_tmp_csv="$PATH_OUTPUT_DIR/$1.tmp"
+	path_tmp_csv="$PATH_OUTPUT_DIR/`basename $1`.tmp"
 
 	cat $1 | grep -v -e GMT -e "$HOGS_HEADER" -e "^$" > $path_tmp_csv
 	cat $path_tmp_csv | cut -c 1-10 | tr -d ' ' > $PATH_OUTPUT_DIR/col_pid
@@ -112,22 +112,64 @@ get_uniq_tasklist()
 	cat $PATH_USAGE_CSV | cut -d',' -f1,2 | grep -v "^$" | sort | uniq | sort -n > $PATH_TASKLIST
 }
 
-split_data_per_task()
+make_data_fixed_length()
 {
+	max="0"
+
+	# find max line nr
+	for file in `find *.000`; do
+		linenr=`wc -l $file | cut -d' ' -f1`
+		if [ "$linenr" -gt "$max" ]; then
+			max=$linenr
+		fi
+	done
+	echo "$max found"
+
+	# add blank line for fixed length
+	for file in `find *.000`; do
+		linenr=`wc -l $file | cut -d' ' -f1`
+		cnt=`echo "$max-$linenr" | bc -l`
+		#echo $cnt
+		if [ 1 -gt "$cnt" ]; then
+			continue;
+		fi
+
+		while [[ $cnt -gt 0 ]]; do
+			cnt=$((cnt-1))
+			echo "" >> $file
+		done
+
+	done
+}
+
+split_data_per_iteration()
+{
+
+	echo "split_data_per-iter,$PATH_TASKDATA_DIR,$PATH_USAGE_CSV"
 	rm -rf $PATH_TASKDATA_DIR
 	mkdir -p $PATH_TASKDATA_DIR
 	# 4. split data per task
-	cat $PATH_USAGE_CSV | $AWK '/procnto-smp-in/{filename=NR".tmp"}; {print > filename}'
+	cat $PATH_USAGE_CSV | $AWK '/procnto-smp-in/{filename=NR".000"}; {print > filename}'
 
-	cat $PATH_TASKLIST | while read line
-	do
-		for sorted_filenr in `find -maxdepth 1 -type f | grep tmp$ | cut -d'/' -f2 | cut -d'.' -f1 | sort -n`; do
-			#echo "$sorted_filenr -> ./$sorted_filenr.tmp"
-			filepath="./$sorted_filenr.tmp"
+}
+
+split_data_per_task()
+{
+	echo "split-data_per-task,$PATH_TASKDATA_DIR,$PATH_USAGE_CSV"
+	rm -rf $PATH_TASKDATA_DIR
+	mkdir -p $PATH_TASKDATA_DIR
+	# 4. split data per task
+	cat $PATH_USAGE_CSV | $AWK '/procnto-smp-in/{filename=NR".000"}; {print > filename}'
+
+	# with this code, do not work wait command
+	#cat $PATH_TASKLIST | while read line
+	#do
+	for line in `cat $PATH_TASKLIST`; do
+		for filename in `find *.000 | sort -n`; do
 			output_path="$PATH_TASKDATA_DIR/`echo "$line" | cut -d',' -f1`.data"
-			echo "$line,$filepath"
+			#echo "$line,$output_path"
 
-			result=`grep -F $line $filepath`
+			result=`grep -F $line $filename`
 			if [ "$?" == "0" ]; then
 				echo $result | cut -d',' -f1,2,4,6 >> $output_path
 				#echo "found, $result"
@@ -137,7 +179,7 @@ split_data_per_task()
 			fi
 		done
 	done
-
+	echo "split_data_per_task,async parsing task finished"
 }
 
 
@@ -160,6 +202,7 @@ split_data_per_task()
 
 join_all_data()
 {
+	echo "join_all_data,$PATH_TASKDATA_DIR,$PATH_CPUUSAGE<$PATH_MEMUSAGE"
 	rm $PATH_CPUUSAGE $PATH_MEMUSAGE
 
 	for i in `find $PATH_TASKDATA_DIR -maxdepth 1 -type f `; do
@@ -169,6 +212,29 @@ join_all_data()
 		echo "$PID_NAME,$CPU_USAGE_LIST" >> $PATH_CPUUSAGE
 		echo "$PID_NAME,$MEM_USAGE_LIST" >> $PATH_MEMUSAGE
 	done
+}
+
+parse_usage_to_csv()
+{
+	path_input=$1
+	echo $path_input
+	for line in `cat $path_input`; do
+		output_path="$PATH_TASKDATA_DIR/`echo "$line" | cut -d',' -f1`.data"
+		echo $line | cut -d>> $output_path
+	done
+}
+
+do_parse_data_new()
+{
+	trans_to_csv "$PATH_USAGE_DATA"
+	get_uniq_tasklist
+	split_data_per_iteration
+	make_data_fixed_length
+
+	for file in `find *.000 | sort -n`; do
+		cat $file >> all
+	done
+
 }
 
 do_parse_data()
@@ -238,6 +304,8 @@ elif [ "$OP_MODE" == "split" ]; then
 	split_data_per_task "$PATH_TASKLIST"
 elif [ "$OP_MODE" == "join" ]; then
 	join_all_data
+elif [ "$OP_MODE" == "new" ]; then
+	do_parse_data_new
 else
 	get_cpu_mem_info "$PATH_USAGE_FILE"
 fi
