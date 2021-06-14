@@ -13,8 +13,7 @@ HOGS_HEADER="PID           NAME  MSEC PIDS  SYS       MEMORY"
 
 DELAY="2"
 COUNT="10"
-#AWK="/usr/bin/debug/awk"
-AWK=awk
+AWK="/usr/bin/debug/awk"
 
 get_cpu_mem_info()
 {
