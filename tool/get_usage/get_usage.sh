@@ -13,7 +13,31 @@ HOGS_HEADER="PID           NAME  MSEC PIDS  SYS       MEMORY"
 
 DELAY="2"
 COUNT="10"
-AWK="/usr/bin/debug/awk"
+AWK="awk"
+PATH_QNX_AWK="/usr/bin/debug/awk"
+
+env_setup()
+{
+	# awk's original place is mounted with readonly and awk not executable
+	# so we cp it to rw area and set it executable
+	if [ ! -x "$AWK" ]; then
+		echo "awk setup is needed"
+	else
+		echo "awk is runnable, setup exit"
+		return
+	fi
+
+	if [ -f  "$PATH_QNX_AWK" ]; then
+		if [ ! -x "$PATH_QNX_AWK" ]; then
+			echo "awk is placed at $PATH_QNX_AWK and but not executable, cp to /tmp/bin and chmod it"
+			cp $PATH_QNX_AWK /tmp/bin/awk
+			chmod +x /tmp/bin/awk
+			AWK="/tmp/bin/awk"
+		else
+			echo "qnx is placed at $PATH_QNX_AWK and it executable, use it"
+		fi
+	fi
+}
 
 get_cpu_mem_info()
 {
@@ -188,6 +212,8 @@ while [[ $# -gt 0 ]]; do
 		* ) display_help; exit 1; ;;
 	esac
 done
+
+env_setup
 
 if [ "$OP_MODE" == "all" ]; then
 	do_all_stage
