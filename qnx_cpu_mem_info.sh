@@ -13,7 +13,8 @@ HOGS_HEADER="PID           NAME  MSEC PIDS  SYS       MEMORY"
 
 DELAY="2"
 COUNT="10"
-AWK="/usr/bin/debug/awk"
+#AWK="/usr/bin/debug/awk"
+AWK=awk
 
 get_cpu_mem_info()
 {
@@ -165,7 +166,7 @@ display_help() {
     echo "   -d, --delay        sec delay(default: 2sec)"
     echo "   -c, --count        count(default: 10)"
     echo "   -o, --output       path(default:/tmp/cpu_mem_info)"
-    echo "   -m, --mode		mode"
+    echo "   -m, --mode         mode(default: info"
     echo "   -h, --help         show this message"
     echo
     # echo some stuff here for the -a or --add-options 
