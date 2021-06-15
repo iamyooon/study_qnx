@@ -12,7 +12,7 @@ PATH_MEMUSAGE="$PATH_OUTPUT_DIR/all_memusage.log"
 
 HOGS_HEADER="PID           NAME  MSEC PIDS  SYS       MEMORY"
 
-DELAY="2"
+DELAY="1"
 COUNT="10"
 AWK="awk"
 PATH_QNX_AWK="/usr/bin/debug/awk"
@@ -271,7 +271,6 @@ do_all_stage()
 display_help() {
     echo "Usage: $0 [option...]" >&2
     echo
-    echo "   -d, --delay        capture delay(default: 2sec)"
     echo "   -c, --count        capture count(default: 10)"
     echo "   -o, --output       capture data output path(default:/tmp/cpu_mem_info)"
     echo "   -m, --mode         mode(default: get cpu memory info
@@ -293,7 +292,6 @@ display_help() {
 while [[ $# -gt 0 ]]; do
 	argument="$1"
 	case $argument in
-		--delay | -d) DELAY=$2; echo "option - delay($DELAY)"; shift; shift; ;;
 		--count | -c) COUNT=$2; echo "option - count($COUNT)"; shift; shift; ;;
 		--output | -o) PATH_USAGE_FILE="$2"; echo "option - output path($PATH_USAGE_FILE)"; shift; shift; ;;
 		--mode | -m) OP_MODE="$2"; echo "option - mode($OP_MODE)"; shift; shift; ;;
