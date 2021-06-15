@@ -144,7 +144,7 @@ make_data_fixed_length()
 	# add blank line for fixed length
 	for file in `find *.000`; do
 		linenr=`cat $file | wc -l | tr -d ' '`
-		cnt=`echo "$max-$linenr" | bc -l`
+		cnt=`echo "$max-$linenr" | bc`
 		#echo $cnt
 		if [ 1 -gt "$cnt" ]; then
 			continue;
