@@ -38,6 +38,7 @@ env_setup()
 			AWK="/tmp/bin/awk"
 		else
 			echo "qnx is placed at $PATH_QNX_AWK and it executable, use it"
+			AWK="$PATH_QNX_AWK"
 		fi
 	fi
 }
