@@ -19,6 +19,8 @@ PATH_QNX_AWK="/usr/bin/debug/awk"
 
 env_setup()
 {
+	rm -rf $PATH_OUTPUT_DIR
+
 	# awk's original place is mounted with readonly and awk not executable
 	# so we cp it to rw area and set it executable
 	if [ ! -x "$AWK" ]; then
