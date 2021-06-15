@@ -53,13 +53,16 @@ get_cpu_mem_info()
 # qnx's hogs show entry without process name
 trans_to_csv()
 {
-	echo "trans_to_csv,$1,$PATH_USAGE_CSV"
+	path_input=$1
+	path_output=$2
+	path_tmp_csv="$PATH_OUTPUT_DIR/`basename $path_input`.tmp"
+
+	echo "trans_to_csv,$path_input,$path_output"
 	mkdir -p $PATH_OUTPUT_DIR
 	rm -rf $PATH_USAGE_CSV output/col_name
 
-	path_tmp_csv="$PATH_OUTPUT_DIR/`basename $1`.tmp"
 
-	cat $1 | grep -v -e GMT -e "$HOGS_HEADER" -e "^$" > $path_tmp_csv
+	cat $path_input | grep -v -e GMT -e "$HOGS_HEADER" -e "^$" > $path_tmp_csv
 	cat $path_tmp_csv | cut -c 1-10 | tr -d ' ' > $PATH_OUTPUT_DIR/col_pid
 	cat $path_tmp_csv | cut -c 11-24 | tr -d ' ' > $PATH_OUTPUT_DIR/col_name.tmp
 	cat $path_tmp_csv | cut -c 25-30 | tr -d ' ' > $PATH_OUTPUT_DIR/col_msec
@@ -228,7 +231,7 @@ parse_usage_to_csv()
 
 do_parse_data_new()
 {
-	trans_to_csv "$PATH_USAGE_DATA"
+	trans_to_csv "$PATH_USAGE_DATA" "$PATH_USAGE_CSV"
 	get_uniq_tasklist
 	split_data_per_iteration
 	make_data_fixed_length
@@ -241,7 +244,7 @@ do_parse_data_new()
 
 do_parse_data()
 {
-	trans_to_csv "$PATH_USAGE_DATA"
+	trans_to_csv "$PATH_USAGE_DATA" "$PATH_USAGE_CSV"
 	get_uniq_tasklist
 	split_data_per_task "$PATH_TASKLIST"
 	join_all_data
@@ -299,7 +302,7 @@ elif [ "$OP_MODE" == "parse" ]; then
 elif [ "$OP_MODE" == "info" ]; then
 	get_cpu_mem_info "$PATH_USAGE_FILE"
 elif [ "$OP_MODE" == "csv" ]; then
-	trans_to_csv "$PATH_USAGE_DATA"
+	trans_to_csv "$PATH_USAGE_DATA" "$PATH_USAGE_CSV"
 elif [ "$OP_MODE" == "tasklist" ]; then
 	get_uniq_tasklist
 elif [ "$OP_MODE" == "split" ]; then
