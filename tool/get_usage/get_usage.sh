@@ -19,6 +19,8 @@ PATH_QNX_AWK="/usr/bin/debug/awk"
 
 env_setup()
 {
+	rm -rf $PATH_OUTPUT_DIR
+
 	# awk's original place is mounted with readonly and awk not executable
 	# so we cp it to rw area and set it executable
 	if [ ! -x "$AWK" ]; then
@@ -36,6 +38,7 @@ env_setup()
 			AWK="/tmp/bin/awk"
 		else
 			echo "qnx is placed at $PATH_QNX_AWK and it executable, use it"
+			AWK="$PATH_QNX_AWK"
 		fi
 	fi
 }
@@ -62,7 +65,7 @@ trans_to_csv()
 	rm -rf $PATH_USAGE_CSV output/col_name
 
 
-	cat $path_input | grep -v -e GMT -e "$HOGS_HEADER" -e "^$" > $path_tmp_csv
+	cat $path_input | grep -v -e GMT -e "$HOGS_HEADER" -e "^$" -e "\[idle\]" > $path_tmp_csv
 	cat $path_tmp_csv | cut -c 1-10 | tr -d ' ' > $PATH_OUTPUT_DIR/col_pid
 	cat $path_tmp_csv | cut -c 11-24 | tr -d ' ' > $PATH_OUTPUT_DIR/col_name.tmp
 	cat $path_tmp_csv | cut -c 25-30 | tr -d ' ' > $PATH_OUTPUT_DIR/col_msec
@@ -121,7 +124,13 @@ make_data_fixed_length()
 
 	# find max line nr
 	for file in `find *.000`; do
-		linenr=`wc -l $file | cut -d' ' -f1`
+		#linenr=`wc -l $file | cut -d' ' -f1`
+		# result of 'wc -l' is differrent
+		# linenr=`wc -l $file | cut -d' ' -f1`
+		# QNX:
+		# # wc -l 1.000
+		# #     87 1.000
+		linenr=`cat $file | wc -l | tr -d ' '`
 		if [ "$linenr" -gt "$max" ]; then
 			max=$linenr
 		fi
@@ -134,8 +143,8 @@ make_data_fixed_length()
 
 	# add blank line for fixed length
 	for file in `find *.000`; do
-		linenr=`wc -l $file | cut -d' ' -f1`
-		cnt=`echo "$max-$linenr" | bc -l`
+		linenr=`cat $file | wc -l | tr -d ' '`
+		cnt=`echo "$max-$linenr" | bc`
 		#echo $cnt
 		if [ 1 -gt "$cnt" ]; then
 			continue;
