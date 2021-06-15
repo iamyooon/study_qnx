@@ -124,7 +124,13 @@ make_data_fixed_length()
 
 	# find max line nr
 	for file in `find *.000`; do
-		linenr=`wc -l $file | cut -d' ' -f1`
+		#linenr=`wc -l $file | cut -d' ' -f1`
+		# result of 'wc -l' is differrent
+		# linenr=`wc -l $file | cut -d' ' -f1`
+		# QNX:
+		# # wc -l 1.000
+		# #     87 1.000
+		linenr=`cat $file | wc -l | tr -d ' '`
 		if [ "$linenr" -gt "$max" ]; then
 			max=$linenr
 		fi
@@ -137,7 +143,7 @@ make_data_fixed_length()
 
 	# add blank line for fixed length
 	for file in `find *.000`; do
-		linenr=`wc -l $file | cut -d' ' -f1`
+		linenr=`cat $file | wc -l | tr -d ' '`
 		cnt=`echo "$max-$linenr" | bc -l`
 		#echo $cnt
 		if [ 1 -gt "$cnt" ]; then
