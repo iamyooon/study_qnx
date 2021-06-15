@@ -65,7 +65,7 @@ trans_to_csv()
 	rm -rf $PATH_USAGE_CSV output/col_name
 
 
-	cat $path_input | grep -v -e GMT -e "$HOGS_HEADER" -e "^$" > $path_tmp_csv
+	cat $path_input | grep -v -e GMT -e "$HOGS_HEADER" -e "^$" -e "\[idle\]" > $path_tmp_csv
 	cat $path_tmp_csv | cut -c 1-10 | tr -d ' ' > $PATH_OUTPUT_DIR/col_pid
 	cat $path_tmp_csv | cut -c 11-24 | tr -d ' ' > $PATH_OUTPUT_DIR/col_name.tmp
 	cat $path_tmp_csv | cut -c 25-30 | tr -d ' ' > $PATH_OUTPUT_DIR/col_msec
