@@ -135,7 +135,7 @@ make_data_fixed_length()
 			max=$linenr
 		fi
 	done
-	echo "max found -> $max"
+	# echo "max found -> $max"
 
 	if [ "100" -gt "$max" ]; then
 		max=100
