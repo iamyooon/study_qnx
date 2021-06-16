@@ -152,7 +152,7 @@ make_data_fixed_length()
 
 		while [[ $cnt -gt 0 ]]; do
 			cnt=$((cnt-1))
-			echo ",,N/A,N/A,N/A,N/A" >> $file
+			echo "N/A,N/A,N/A,N/A,N/A,N/A" >> $file
 		done
 
 	done
