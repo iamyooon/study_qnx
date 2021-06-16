@@ -238,7 +238,7 @@ parse_usage_to_csv()
 	done
 }
 
-do_parse_data_new()
+do_parse_data()
 {
 	trans_to_csv "$PATH_USAGE_DATA" "$PATH_USAGE_CSV"
 	get_uniq_tasklist
@@ -251,7 +251,7 @@ do_parse_data_new()
 
 }
 
-do_parse_data()
+do_parse_data_old()
 {
 	trans_to_csv "$PATH_USAGE_DATA" "$PATH_USAGE_CSV"
 	get_uniq_tasklist
@@ -316,8 +316,6 @@ elif [ "$OP_MODE" == "split" ]; then
 	split_data_per_task "$PATH_TASKLIST"
 elif [ "$OP_MODE" == "join" ]; then
 	join_all_data
-elif [ "$OP_MODE" == "new" ]; then
-	do_parse_data_new
 else
 	get_cpu_mem_info "$PATH_USAGE_FILE"
 fi
