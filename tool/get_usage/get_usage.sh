@@ -19,6 +19,7 @@ PATH_QNX_AWK="/usr/bin/debug/awk"
 
 env_setup()
 {
+	rm -rf *.000
 	rm -rf $PATH_OUTPUT_DIR
 
 	# awk's original place is mounted with readonly and awk not executable
@@ -248,7 +249,6 @@ do_parse_data()
 	for file in `find *.000 | sort -n`; do
 		cat $file >> $PATH_OUTPUT_DIR/all.csv
 	done
-
 }
 
 do_parse_data_old()
