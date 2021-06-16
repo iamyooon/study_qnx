@@ -247,8 +247,10 @@ do_parse_data()
 	make_data_fixed_length
 
 	for file in `find *.000 | sort -n`; do
-		cat $file >> $PATH_OUTPUT_DIR/all.csv
+		cat $file >> $PATH_OUTPUT_DIR/all_data.csv
 	done
+
+	paste -d',' $PATH_OUTPUT_DIR/all_data.csv $PATH_TASKLIST >> $PATH_OUTPUT_DIR/all.csv
 }
 
 do_parse_data_old()
