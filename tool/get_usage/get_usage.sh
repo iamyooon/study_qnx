@@ -6,19 +6,20 @@ PATH_USAGE_DATA=$PATH_USAGE_FILE
 PATH_OUTPUT_DIR="./output"
 PATH_TASKDATA_DIR="$PATH_OUTPUT_DIR/taskdata"
 PATH_USAGE_CSV="$PATH_OUTPUT_DIR/cpu_mem_info.csv"
-PATH_TASKLIST="$PATH_OUTPUT_DIR/tasklist"
+PATH_TASKLIST="$PATH_OUTPUT_DIR/tasklist.csv"
 PATH_CPUUSAGE="$PATH_OUTPUT_DIR/all_cpuusage.log"
 PATH_MEMUSAGE="$PATH_OUTPUT_DIR/all_memusage.log"
 
 HOGS_HEADER="PID           NAME  MSEC PIDS  SYS       MEMORY"
 
-DELAY="2"
+DELAY="1"
 COUNT="10"
 AWK="awk"
 PATH_QNX_AWK="/usr/bin/debug/awk"
 
 env_setup()
 {
+	rm -rf *.000
 	rm -rf $PATH_OUTPUT_DIR
 
 	# awk's original place is mounted with readonly and awk not executable
@@ -135,7 +136,7 @@ make_data_fixed_length()
 			max=$linenr
 		fi
 	done
-	echo "max found -> $max"
+	# echo "max found -> $max"
 
 	if [ "100" -gt "$max" ]; then
 		max=100
@@ -152,7 +153,7 @@ make_data_fixed_length()
 
 		while [[ $cnt -gt 0 ]]; do
 			cnt=$((cnt-1))
-			echo ",,N/A,N/A,N/A,N/A" >> $file
+			echo "N/A,N/A,N/A,N/A,N/A,N/A" >> $file
 		done
 
 	done
@@ -238,7 +239,7 @@ parse_usage_to_csv()
 	done
 }
 
-do_parse_data_new()
+do_parse_data()
 {
 	trans_to_csv "$PATH_USAGE_DATA" "$PATH_USAGE_CSV"
 	get_uniq_tasklist
@@ -246,12 +247,13 @@ do_parse_data_new()
 	make_data_fixed_length
 
 	for file in `find *.000 | sort -n`; do
-		cat $file >> $PATH_OUTPUT_DIR/all.csv
+		cat $file >> $PATH_OUTPUT_DIR/all_data.csv
 	done
 
+	paste -d',' $PATH_OUTPUT_DIR/all_data.csv $PATH_TASKLIST >> $PATH_OUTPUT_DIR/all.csv
 }
 
-do_parse_data()
+do_parse_data_old()
 {
 	trans_to_csv "$PATH_USAGE_DATA" "$PATH_USAGE_CSV"
 	get_uniq_tasklist
@@ -271,7 +273,6 @@ do_all_stage()
 display_help() {
     echo "Usage: $0 [option...]" >&2
     echo
-    echo "   -d, --delay        capture delay(default: 2sec)"
     echo "   -c, --count        capture count(default: 10)"
     echo "   -o, --output       capture data output path(default:/tmp/cpu_mem_info)"
     echo "   -m, --mode         mode(default: get cpu memory info
@@ -293,7 +294,6 @@ display_help() {
 while [[ $# -gt 0 ]]; do
 	argument="$1"
 	case $argument in
-		--delay | -d) DELAY=$2; echo "option - delay($DELAY)"; shift; shift; ;;
 		--count | -c) COUNT=$2; echo "option - count($COUNT)"; shift; shift; ;;
 		--output | -o) PATH_USAGE_FILE="$2"; echo "option - output path($PATH_USAGE_FILE)"; shift; shift; ;;
 		--mode | -m) OP_MODE="$2"; echo "option - mode($OP_MODE)"; shift; shift; ;;
@@ -318,8 +318,6 @@ elif [ "$OP_MODE" == "split" ]; then
 	split_data_per_task "$PATH_TASKLIST"
 elif [ "$OP_MODE" == "join" ]; then
 	join_all_data
-elif [ "$OP_MODE" == "new" ]; then
-	do_parse_data_new
 else
 	get_cpu_mem_info "$PATH_USAGE_FILE"
 fi
