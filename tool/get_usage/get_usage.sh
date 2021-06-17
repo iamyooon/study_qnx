@@ -46,11 +46,21 @@ env_setup()
 
 get_cpu_mem_info()
 {
+	echo "========================================"
+	echo "start capturing CPU usage information"
+	echo "========================================"
+	echo ""
+
 	rm -rf $1
 	date >> $1
 	echo "delay: $DELAY count: $COUNT output path: $1"
 	hogs -p 40 -S p -s $DELAY -i $COUNT -m p >> $1
 	date >> $1
+
+	echo ""
+	echo "========================================"
+	echo "CPU usage information capture done"
+	echo "========================================"
 }
 
 # re-write function to handle qnx exception
@@ -241,6 +251,10 @@ parse_usage_to_csv()
 
 do_parse_data()
 {
+	echo "========================================"
+	echo "start parsing CPU information data"
+	echo "========================================"
+	echo ""
 	trans_to_csv "$PATH_USAGE_DATA" "$PATH_USAGE_CSV"
 	get_uniq_tasklist
 	split_data_per_iteration
@@ -251,6 +265,10 @@ do_parse_data()
 	done
 
 	paste -d',' $PATH_OUTPUT_DIR/all_data.csv $PATH_TASKLIST >> $PATH_OUTPUT_DIR/all.csv
+	echo ""
+	echo "========================================"
+	echo "parsing CPU information data done"
+	echo "========================================"
 }
 
 do_parse_data_old()
@@ -276,8 +294,8 @@ display_help() {
     echo "   -c, --count        capture count(default: 10)"
     echo "   -o, --output       capture data output path(default:/tmp/cpu_mem_info)"
     echo "   -m, --mode         mode(default: get cpu memory info
-    				all: get cpu memory info & parse data
-				parse: parse data"
+                                all: get cpu memory info & parse data
+                                parse: parse data"
     echo "   -i, --input        cpu memory info path"
     echo "   -h, --help         show this message"
     echo
