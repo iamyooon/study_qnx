@@ -5,6 +5,18 @@ turn_on_time=0
 turn_off_time=0
 period_time=0
 
+if [ "$1" == "test" ]; then
+	echo "apply turn on/off signal"
+	while true; do
+	        echo TurnSignal_State:i:3>>/pps/VehicleInfo.pps
+	        sleep 0.4
+	        echo TurnSignal_State:i:0>>/pps/VehicleInfo.pps
+	        sleep 0.4
+	done&
+	exit
+fi
+
+
 while read line; do
 	if echo $line | grep TLTL | grep -q "\-,data,:"; then
                 if echo $line | grep -q "DID\":55"; then
