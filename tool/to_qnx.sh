@@ -1,0 +1,9 @@
+#!/bin/sh
+
+FILE_NAME=$1
+
+DESTINATION=/tmp
+
+echo "Copy $FILE_NAME to $DESTINATION(QNX)"
+
+scp -P 10022 $FILE_NAME root@192.168.105.100:$DESTINATION
